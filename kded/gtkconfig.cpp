@@ -13,9 +13,13 @@
 
 #include <QDBusConnection>
 #include <QDBusMessage>
+#include <QDir>
+#include <QFileInfo>
 #include <QFont>
 #include <QGuiApplication>
 #include <QTimer>
+
+#include <gtk/gtk.h>
 
 #include <algorithm>
 #include <cmath>
@@ -64,18 +68,78 @@ GtkConfig::~GtkConfig()
     dbus.unregisterObject(QStringLiteral("/GtkConfig"));
 }
 
-void GtkConfig::setGtk2Theme(const QString &themeName, const bool preferDarkTheme) const
+namespace {
+
+QStringList gtkThemeSearchPaths()
 {
-    // GTK2 does not support using dark variant automatically, so we have to get dark preference and switch based on that
-    QString possiblydarkthemeName = themeName;
-    if (themeName == QLatin1String("Silver") && preferDarkTheme) {
-        possiblydarkthemeName = QStringLiteral("Silver-Dark");
-    } else if (themeName == QLatin1String("Breeze") && preferDarkTheme) {
-        possiblydarkthemeName = QStringLiteral("Breeze-Dark");
+    // GTK2 searches ~/.themes and its installation prefix, not XDG data directories.
+    // GTK3 retains this legacy API, including support for GTK_DATA_PREFIX.
+    G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+    gchar* themeDirectory = gtk_rc_get_theme_dir();
+    G_GNUC_END_IGNORE_DEPRECATIONS
+    const QString systemThemePath = QString::fromUtf8(themeDirectory);
+    g_free(themeDirectory);
+
+    return {QDir::homePath() + QStringLiteral("/.themes"), systemThemePath};
+}
+
+bool gtkThemeExists(const QString& themeName)
+{
+    if (themeName.isEmpty()) {
+        return false;
     }
 
-    Gtk2ConfigEditor::setValue(QStringLiteral("gtk-theme-name"), possiblydarkthemeName);
-    XSettingsEditor::setValue(QStringLiteral("Net/ThemeName"), possiblydarkthemeName);
+    for (const QString& themeBasePath : gtkThemeSearchPaths()) {
+        const QFileInfo gtkrc(QDir(themeBasePath).filePath(themeName + QStringLiteral("/gtk-2.0/gtkrc")));
+        if (gtkrc.exists()) {
+            // GTK2 stops at the first existing gtkrc, even if it cannot load it.
+            return gtkrc.isFile() && gtkrc.isReadable();
+        }
+    }
+
+    return false;
+}
+
+QString findGtk2DarkThemeVariant(const QString& themeName)
+{
+    if (themeName.isEmpty()) {
+        return {};
+    }
+
+    static const QStringList suffixes = {
+        QStringLiteral("-dark"),
+        QStringLiteral("-Dark"),
+        QStringLiteral(" dark"),
+        QStringLiteral(" Dark"),
+        QStringLiteral("dark"),
+        QStringLiteral("Dark"),
+    };
+
+    for (const QString& suffix : suffixes) {
+        const QString candidate = themeName + suffix;
+        if (gtkThemeExists(candidate)) {
+            return candidate;
+        }
+    }
+
+    return {};
+}
+
+}
+
+void GtkConfig::setGtk2Theme(const QString& themeName, const bool preferDarkTheme) const
+{
+    // GTK2 does not support using dark variant automatically, so we have to find a dark theme folder variant if available.
+    QString possiblyDarkThemeName = themeName;
+    if (preferDarkTheme) {
+        const QString darkVariant = findGtk2DarkThemeVariant(themeName);
+        if (!darkVariant.isEmpty()) {
+            possiblyDarkThemeName = darkVariant;
+        }
+    }
+
+    Gtk2ConfigEditor::setValue(QStringLiteral("gtk-theme-name"), possiblyDarkThemeName);
+    XSettingsEditor::setValue(QStringLiteral("Net/ThemeName"), possiblyDarkThemeName);
 }
 
 void GtkConfig::setGtkTheme(const QString &themeName) const
