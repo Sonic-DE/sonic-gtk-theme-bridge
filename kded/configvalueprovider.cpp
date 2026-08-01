@@ -128,13 +128,13 @@ QString ConfigValueProvider::fontStyleHelper(const QFont &font) const
 QString ConfigValueProvider::iconThemeName() const
 {
     KConfigGroup configGroup = kdeglobalsConfig->group(QStringLiteral("Icons"));
-    return configGroup.readEntry(QStringLiteral("Theme"), QStringLiteral("breeze"));
+    return configGroup.readEntry(QStringLiteral("Theme"), QStringLiteral("silver"));
 }
 
 QString ConfigValueProvider::cursorThemeName() const
 {
     KConfigGroup configGroup = inputConfig->group(QStringLiteral("Mouse"));
-    return configGroup.readEntry(QStringLiteral("cursorTheme"), QStringLiteral("breeze_cursors"));
+    return configGroup.readEntry(QStringLiteral("cursorTheme"), QStringLiteral("silver_cursors_light"));
 }
 
 QString ConfigValueProvider::soundThemeName() const

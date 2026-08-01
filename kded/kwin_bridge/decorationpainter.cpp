@@ -21,8 +21,8 @@ std::unique_ptr<DecorationPainter> DecorationPainter::get()
 {
     auto kwinConfig = KSharedConfig::openConfig(QStringLiteral("kwinrc"));
     KConfigGroup decorationGroup = kwinConfig->group(QStringLiteral("org.kde.kdecoration2"));
-    const QString themeName = decorationGroup.readEntry(QStringLiteral("theme"), QStringLiteral("Breeze"));
-    const QString pluginName = decorationGroup.readEntry(QStringLiteral("library"), QStringLiteral("org.kde.breeze"));
+    const QString themeName = decorationGroup.readEntry(QStringLiteral("theme"), QStringLiteral("Silver"));
+    const QString pluginName = decorationGroup.readEntry(QStringLiteral("library"), QStringLiteral("org.kde.silver"));
 
     // FIXME this does not work for Aurorae QML decorations
     static const QString auroraeThemePrefix = QStringLiteral("__aurorae__svg__");
