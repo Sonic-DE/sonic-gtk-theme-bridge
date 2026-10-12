@@ -41,7 +41,11 @@ void saveWindowDecorationsToAssets(const QStringList &windowDecorationsButtonsIm
 void addWindowDecorationsCssFile()
 {
     for (auto gtkVersion : Utils::s_gtkVersions) {
-        QFile windowDecorationsCss{QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("/themes/Breeze/window_decorations.css"))};
+        QString cssPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("themes/Silver/window_decorations.css"));
+        if (cssPath.isEmpty()) {
+            cssPath = QStandardPaths::locate(QStandardPaths::GenericDataLocation, QStringLiteral("themes/Breeze/window_decorations.css"));
+        }
+        QFile windowDecorationsCss{cssPath};
 
         auto windowDecorationsDestination = Utils::configDirPath(gtkVersion) + QStringLiteral("/window_decorations.css");
 
