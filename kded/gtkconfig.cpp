@@ -68,7 +68,9 @@ void GtkConfig::setGtk2Theme(const QString &themeName, const bool preferDarkThem
 {
     // GTK2 does not support using dark variant automatically, so we have to get dark preference and switch based on that
     QString possiblydarkthemeName = themeName;
-    if (themeName == QLatin1String("Breeze") && preferDarkTheme) {
+    if (themeName == QLatin1String("Silver") && preferDarkTheme) {
+        possiblydarkthemeName = QStringLiteral("Silver-Dark");
+    } else if (themeName == QLatin1String("Breeze") && preferDarkTheme) {
         possiblydarkthemeName = QStringLiteral("Breeze-Dark");
     }
 
@@ -82,7 +84,7 @@ void GtkConfig::setGtkTheme(const QString &themeName) const
     GSettingsEditor::setValue("gtk-theme", themeName);
     SettingsIniEditor::setValue(QStringLiteral("gtk-theme-name"), themeName);
 
-    // Window decorations are part of the theme, in case of Breeze we inject custom ones from KWin
+    // Window decorations are part of the theme; Silver uses custom ones from KWin.
     setWindowDecorationsAppearance();
 }
 
@@ -244,7 +246,8 @@ void GtkConfig::setDarkThemePreference() const
 
 void GtkConfig::setWindowDecorationsAppearance() const
 {
-    if (gtkTheme() == QStringLiteral("Breeze")) { // Only Breeze GTK supports custom decoration buttons
+    const auto themeName = gtkTheme();
+    if (themeName == QStringLiteral("Silver") || themeName == QStringLiteral("Silver-Dark") || themeName == QStringLiteral("Breeze")) {
         const auto windowDecorationsButtonsImages = configValueProvider->windowDecorationsButtonsImages();
         CustomCssEditor::setCustomClientSideDecorations(windowDecorationsButtonsImages);
     } else {

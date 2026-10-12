@@ -14,6 +14,7 @@
 #include "config_editor/gsettings.h"
 #include "config_editor/gtk2.h"
 #include "config_editor/settings_ini.h"
+#include "config_editor/utils.h"
 #include "config_editor/xsettings.h"
 
 QString gtk2Theme();
@@ -31,7 +32,12 @@ int main()
 void upgradeGtk2Theme()
 {
     QString currentGtk2Theme = gtk2Theme();
+    if (currentGtk2Theme == QStringLiteral("Breeze-Dark")) {
+        Gtk2ConfigEditor::setValue(QStringLiteral("gtk-theme-name"), QStringLiteral("Silver-Dark"));
+        return;
+    }
     if (currentGtk2Theme.isEmpty() //
+        || currentGtk2Theme == QStringLiteral("Breeze") //
         || currentGtk2Theme == QStringLiteral("oxygen-gtk") //
         || currentGtk2Theme == QStringLiteral("BreezyGTK") //
         || currentGtk2Theme == QStringLiteral("Orion")) {
@@ -41,14 +47,26 @@ void upgradeGtk2Theme()
 
 void upgradeGtk3Theme()
 {
-    QString currentGtk3Theme = SettingsIniEditor::value(QStringLiteral("gtk-theme-name"), 3);
-    if (currentGtk3Theme.isEmpty() //
-        || currentGtk3Theme == QStringLiteral("oxygen-gtk") //
-        || currentGtk3Theme == QStringLiteral("BreezyGTK") //
-        || currentGtk3Theme == QStringLiteral("Orion")) {
-        GSettingsEditor::setValue("gtk-theme", QStringLiteral("Silver"));
-        SettingsIniEditor::setValue(QStringLiteral("gtk-theme-name"), QStringLiteral("Silver"), 3);
-        XSettingsEditor::setValue(QStringLiteral("Net/ThemeName"), QStringLiteral("Silver"));
+    for (auto gtkVersion : Utils::s_gtkVersions) {
+        const QString currentTheme = SettingsIniEditor::value(QStringLiteral("gtk-theme-name"), gtkVersion);
+        QString newTheme;
+        if (currentTheme == QStringLiteral("Breeze-Dark")) {
+            newTheme = QStringLiteral("Silver-Dark");
+        } else if (currentTheme.isEmpty() //
+            || currentTheme == QStringLiteral("Breeze") //
+            || currentTheme == QStringLiteral("oxygen-gtk") //
+            || currentTheme == QStringLiteral("BreezyGTK") //
+            || currentTheme == QStringLiteral("Orion")) {
+            newTheme = QStringLiteral("Silver");
+        }
+        if (newTheme.isEmpty()) {
+            continue;
+        }
+        SettingsIniEditor::setValue(QStringLiteral("gtk-theme-name"), newTheme, gtkVersion);
+        if (gtkVersion == 3) {
+            GSettingsEditor::setValue("gtk-theme", newTheme);
+            XSettingsEditor::setValue(QStringLiteral("Net/ThemeName"), newTheme);
+        }
     }
 }
 
