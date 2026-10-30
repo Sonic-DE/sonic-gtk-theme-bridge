@@ -7,6 +7,7 @@
 #include <gdk/gdk.h>
 #include <gio/gio.h>
 #include <glib.h>
+#include <gmodule.h>
 #include <gtk/gtk.h>
 
 #define UNUSED(x) (void)(x)
@@ -23,6 +24,14 @@ void reload_css_provider();
 void remove_css_provider();
 int theme_is_breeze();
 void theme_changed(GtkSettings *settings, GParamSpec *param_spec, void *user_data);
+
+// The file monitor's and settings' callbacks outlive an unload (browsers load and drop GTK
+// modules while probing GTK), so the module must stay loaded.
+__attribute__((visibility("default"))) const gchar* g_module_check_init(GModule* module)
+{
+    g_module_make_resident(module);
+    return NULL;
+}
 
 __attribute__((visibility("default"))) void gtk_module_init(gint *argc, gchar ***argv[])
 {
