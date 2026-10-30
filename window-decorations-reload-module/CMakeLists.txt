@@ -5,6 +5,7 @@ add_library(window-decorations-gtk3-module MODULE
 target_link_libraries(window-decorations-gtk3-module
   PRIVATE
     PkgConfig::GLib2
+    PkgConfig::GModule
     PkgConfig::GTK+3
 )
 

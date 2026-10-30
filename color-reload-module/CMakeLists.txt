@@ -4,8 +4,9 @@ add_library(colorreload-gtk3-module MODULE
 
 target_link_libraries(colorreload-gtk3-module
     PRIVATE
-      PkgConfig::GLib2 
-      PkgConfig::GTK+3 
+      PkgConfig::GLib2
+      PkgConfig::GModule
+      PkgConfig::GTK+3
 )
 
 set_target_properties(colorreload-gtk3-module
