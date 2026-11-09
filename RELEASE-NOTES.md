@@ -2,6 +2,10 @@
 
 Keeps GTK apps (such as Firefox or GIMP) matching your SonicDE theme, fonts and colours.
 
+## 6.8.2 (2026-11-10)
+
+- Fixed GTK apps possibly crashing after SonicDE updated their colours or window borders, because the helpers doing it could be unloaded while still in use.
+
 ## 6.8.0 (2026-10-20)
 
 - GTK apps now correctly follow SonicDE into dark mode when you use the Silver dark style.
